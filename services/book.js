@@ -185,7 +185,7 @@ async function listBook(query) {
   let bookSql = 'select * from book'
   let where = 'where'
   // 类型.
-  category && (where = db.and(where, 'category', category))
+  category && (where = db.and(where, 'categoryText', category))
   // 书名.
   title && (where = db.andLike(where, 'title', title))
   // 作者.
@@ -217,10 +217,37 @@ async function listBook(query) {
   return { list, count: count[0].count, page, pageSize }
 }
 
+/**
+ * 删除电子书.
+ * @param fileName
+ * @returns {Promise<unknown>}
+ */
+async function deleteBook(fileName) {
+  return new Promise(async (resolve, reject) => {
+    const book = await getBook(fileName)
+    if (book) {
+      if (+book.updateType === 0) {
+        reject(new Error('内置电子书不能删除'))
+      } else {
+        const bookObj = new Book(null, book)
+        const sql = `delete from book where fileName='${fileName}'`
+        db.querySql(sql).then(() => {
+          // 删除电子书资源文件.
+          bookObj.reset()
+          resolve()
+        })
+      }
+    } else {
+      reject(new Error("电子书不存在"))
+    }
+  })
+}
+
 module.exports = {
   insertBook,
   updateBook,
   getBook,
   getCategory,
-  listBook
+  listBook,
+  deleteBook
 }

@@ -128,4 +128,25 @@ router.get(
   }
 )
 
+/**
+ * 删除电子书.
+ */
+router.get(
+  '/delete',
+  function(request, response, next) {
+    const { fileName } = request.query
+    console.log(request)
+    if (!fileName) {
+      next(boom.badRequest(new Error('参数fileName不能为空')))
+    } else {
+      // 调用获取电子书服务.
+      bookService.deleteBook(fileName).then(book => {
+        new Result( '删除电子书信息成功').success(response)
+      }).catch(error => {
+        next(boom.badImplementation(error))
+      })
+    }
+  }
+)
+
 module.exports = router
